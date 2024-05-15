@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import {MongoClient}from 'mongodb';
 
 const products = [{
   id: '123',
@@ -98,8 +99,15 @@ const products = [{
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/api/products', (req, res) => {
-    res.status(200).json(products);
+app.get('/api/products', async (req, res) => {
+  const client = await MongoClient.connect(
+    'mongodb://localhost:27017',
+    { useNewUrlParser: true, useUnifiedTopology: true },
+  );
+  const db = client.db('vue-db');
+  const products = await db.collection('products').find({}).toArray();
+  res.status(200).json(products);
+  client.close();
 });
 
 app.get('/api/users/:userId/cart', (req, res) => {
